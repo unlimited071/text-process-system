@@ -63,7 +63,9 @@ namespace Server
                         response.StatusCode = (int) HttpStatusCode.BadRequest;
                         response.ContentType = "text/plain";
                         response.ContentLength64 = reponseContent.Length;
-                        await response.OutputStream.WriteAsync(reponseContent, 0, reponseContent.Length).ConfigureAwait(false);
+                        await
+                            response.OutputStream.WriteAsync(reponseContent, 0, reponseContent.Length)
+                                .ConfigureAwait(false);
                         return;
                     }
 

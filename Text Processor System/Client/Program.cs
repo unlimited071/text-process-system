@@ -51,7 +51,7 @@ namespace Client
             {
                 Console.Out.Write("Please enter the number of texts to send: ");
                 input = Console.ReadLine();
-            }   
+            }
             return input;
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -34,8 +33,8 @@ namespace Server
                 {
                     IStatCountCalculation[] calculations =
                     {
-                        new AlphanumericCountStatCalculation(), 
-                        new NCountStatCalculation(), 
+                        new AlphanumericCountStatCalculation(),
+                        new NCountStatCalculation(),
                         new ParagraphCountStatCalculation()
                     };
                     var calculator = new StatsCalculator(calculations);
@@ -43,7 +42,7 @@ namespace Server
 
                     var statsResult = new StringBuilder();
                     statsResult.AppendLine(work);
-                    foreach (var stat in stats)
+                    foreach (Stat stat in stats)
                         statsResult.AppendFormat("{0}: {1}\r\n", stat.Description, stat.Count);
                     statsResult.AppendLine("========================\r\n");
 

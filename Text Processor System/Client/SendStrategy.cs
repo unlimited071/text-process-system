@@ -20,7 +20,8 @@ namespace Client
 
         public static async Task SendTextsAsync(string text)
         {
-            HttpResponseMessage response = await HttpClient.PostAsync(Settings.ServerUri, new StringContent(text)).ConfigureAwait(false);
+            HttpResponseMessage response =
+                await HttpClient.PostAsync(Settings.ServerUri, new StringContent(text)).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
         }
     }
