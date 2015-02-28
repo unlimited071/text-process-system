@@ -19,10 +19,10 @@ namespace ClientTests
         }
 
         [TestMethod]
-        public void AllSentencesEndInNewLine()
+        public void AllSentencesEndInPeriodAndNewLine()
         {
             string sentence = _sentenceGenerator.GenerateSentence();
-            Assert.IsTrue(sentence.EndsWith(Environment.NewLine));
+            Assert.IsTrue(sentence.EndsWith("." + Environment.NewLine));
         }
 
         [TestMethod]

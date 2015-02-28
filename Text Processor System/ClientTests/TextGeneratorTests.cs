@@ -34,5 +34,15 @@ namespace ClientTests
             stopwatch.Stop();
             Assert.IsTrue(stopwatch.ElapsedMilliseconds < 1);
         }
+
+        [TestMethod]
+        public void Generating1KTextsShouldBeFast()
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            for (int i = 0; i < 1000; i++)
+                _textGenerator.GenerateText();
+            stopwatch.Stop();
+            Assert.IsTrue(stopwatch.ElapsedMilliseconds < 100);
+        }
     }
 }

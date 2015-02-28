@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace Server.Models
 {
@@ -8,8 +9,10 @@ namespace Server.Models
 
         public Stat Calculate(string input)
         {
+            if (input == null) throw new ArgumentNullException("input");
             return new Stat
             {
+                Description = "Alphanumeric Characters",
                 Count = _regex.Matches(input).Count
             };
         }

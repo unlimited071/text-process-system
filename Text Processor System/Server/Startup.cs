@@ -10,7 +10,7 @@ namespace Server
             // Configure Web API for self-host. 
             var config = new HttpConfiguration();
             config.Routes.MapHttpRoute(
-                "DefaultApi", "api/{controller}/{id}", new {id = RouteParameter.Optional});
+                "DefaultApi", "{controller}/{action}/{id}", new {id = RouteParameter.Optional});
 
             appBuilder.UseWebApi(config);
         }
