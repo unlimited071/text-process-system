@@ -1,0 +1,1 @@
+start Server\bin\Release\Server.exe

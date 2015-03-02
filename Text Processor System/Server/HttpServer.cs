@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Server
@@ -42,7 +41,20 @@ namespace Server
         private void Stop()
         {
             _listener.Stop();
-            _serverTask.Wait();
+            try
+            {
+                _serverTask.Wait();
+            }
+            catch (AggregateException e)
+            {
+                e = e.Flatten();
+                foreach (var ex in e.InnerExceptions)
+                {
+                    Console.Out.WriteLine(ex.Message);
+                    for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
+                        Console.Out.WriteLine(ie.Message);
+                }
+            }
         }
 
         private async Task CreateRequestHandler()
@@ -111,7 +123,7 @@ namespace Server
             GC.SuppressFinalize(this);
         }
 
-        public virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;

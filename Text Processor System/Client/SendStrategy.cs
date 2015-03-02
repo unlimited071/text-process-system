@@ -22,6 +22,7 @@ namespace Client
         {
             HttpResponseMessage response =
                 await HttpClient.PostAsync(Settings.ServerUri, new StringContent(text)).ConfigureAwait(false);
+
             response.EnsureSuccessStatusCode();
         }
     }

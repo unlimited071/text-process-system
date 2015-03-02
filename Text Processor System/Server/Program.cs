@@ -24,8 +24,8 @@ namespace Server
                 SixteenOrMoreWordsSentenceTextStatCalculator.Calculate
             };
             IStatsCalculator statsCalculator = new StatsCalculator(calculations);
-            IStatsPersister statsPersister = new StatsPersister(outputFile);
-            var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersister);
+            IStatsPersisterAsync statsPersisterAsync = new StatsPersisterAsync(outputFile);
+            var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersisterAsync);
             var textProcessorHandler = new TextProcessorHandler(textStatsProcessor);
             textProcessorHandler.Start();
 
@@ -35,7 +35,7 @@ namespace Server
                 new HttpHandlerAsync("/ping", PongHandler.HandleAsync)
             };
 
-            var options = new HttpServerOptions(baseAddress, handlers, 20);
+            var options = new HttpServerOptions(baseAddress, handlers, 20000);
             using (HttpServer.CreateHttpServer(options))
             {
                 Ping(baseAddress);

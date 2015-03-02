@@ -47,13 +47,13 @@
     <Compile Include="HttpServerOptions.cs" />
     <Compile Include="Models\AlphanumericCountTextStatCalculator.cs" />
     <Compile Include="Models\SixteenOrMoreWordsSentenceTextStatCalculator.cs" />
-    <Compile Include="Models\IStatsPersister.cs" />
+    <Compile Include="Models\IStatsPersisterAsync.cs" />
     <Compile Include="Models\IStatsCalculator.cs" />
     <Compile Include="Models\ITextStatCalculator.cs" />
     <Compile Include="Models\NCountTextStatCalculator.cs" />
     <Compile Include="Models\ParagraphCountTextStatCalculator.cs" />
     <Compile Include="Models\Stat.cs" />
-    <Compile Include="Models\StatsPersister.cs" />
+    <Compile Include="Models\StatsPersisterAsync.cs" />
     <Compile Include="Models\StatsCalculator.cs" />
     <Compile Include="PongHandler.cs" />
     <Compile Include="Program.cs" />

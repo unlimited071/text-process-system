@@ -34,7 +34,13 @@ namespace Client
             }
             catch (AggregateException e)
             {
-                Console.WriteLine(e);
+                e = e.Flatten();
+                foreach (var ex in e.InnerExceptions)
+                {
+                    Console.Out.WriteLine(ex.Message);
+                    for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
+                        Console.Out.WriteLine(ie.Message);
+                }
             }
             stopwatch.Stop();
             Console.Out.WriteLine("It took: " + stopwatch.ElapsedMilliseconds + "ms");

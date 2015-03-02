@@ -7,12 +7,12 @@ namespace Server.Models
     {
         private readonly IStatsCalculator _calculator;
         private readonly BufferBlock<string> _inputBuffer;
-        private readonly IStatsPersister _persister;
+        private readonly IStatsPersisterAsync _persisterAsync;
 
-        public TextStatsProcessor(IStatsCalculator statsCalculator, IStatsPersister persister)
+        public TextStatsProcessor(IStatsCalculator statsCalculator, IStatsPersisterAsync persisterAsync)
         {
             _inputBuffer = new BufferBlock<string>();
-            _persister = persister;
+            _persisterAsync = persisterAsync;
             _calculator = statsCalculator;
         }
 
@@ -29,7 +29,7 @@ namespace Server.Models
                 if (_inputBuffer.TryReceive(out input))
                 {
                     Stat[] stats = _calculator.Calculate(input);
-                    _persister.Persist(input, stats);
+                    await _persisterAsync.PersistAsync(input, stats).ConfigureAwait(false);
                 }
             }
         }

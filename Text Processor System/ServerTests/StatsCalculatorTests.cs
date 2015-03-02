@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Server;
 using Server.Models;
 
 namespace ServerTests
@@ -40,8 +38,8 @@ namespace ServerTests
         public void MustCallCalculator()
         {
             var calculator = new FakeStatsCalculator();
-            IStatsPersister persister = new FakePersister();
-            var processor = new TextStatsProcessor(calculator, persister);
+            IStatsPersisterAsync persisterAsync = new FakePersisterAsync();
+            var processor = new TextStatsProcessor(calculator, persisterAsync);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
             Task starAsync = processor.StarAsync();
@@ -55,7 +53,7 @@ namespace ServerTests
         public void MustCallPersister()
         {
             IStatsCalculator calculator = new FakeStatsCalculator();
-            var persister = new FakePersister();
+            var persister = new FakePersisterAsync();
             var processor = new TextStatsProcessor(calculator, persister);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
