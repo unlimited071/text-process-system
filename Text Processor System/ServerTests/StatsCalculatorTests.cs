@@ -66,25 +66,4 @@ namespace ServerTests
             Assert.IsTrue(persister.Executed);
         }
     }
-
-    public class FakeStatsCalculator : IStatsCalculator
-    {
-        public bool Executed { get; set; }
-
-        public Stat[] Calculate(string input)
-        {
-            Executed = true;
-            return new Stat[] {};
-        }
-    }
-
-    public class FakePersister : IStatsPersister
-    {
-        public bool Executed { get; set; }
-
-        public void Persist(string input, Stat[] stats)
-        {
-            Executed = true;
-        }
-    }
 }

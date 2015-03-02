@@ -15,7 +15,7 @@ namespace Server.Models
         {
             return new Stat
             {
-                Description = "15 word sentences",
+                Description = "16+ word sentences",
                 Count = Regex.Matches(input).Count
             };
         }

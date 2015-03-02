@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-using Server.Models;
 
-namespace Server
+namespace Server.Models
 {
     public class TextStatsProcessor
     {

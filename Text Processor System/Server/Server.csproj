@@ -61,7 +61,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="StringContentHandler.cs" />
     <Compile Include="TextProcessorHandler.cs" />
-    <Compile Include="TextStatsProcessor.cs" />
+    <Compile Include="Models\TextStatsProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
