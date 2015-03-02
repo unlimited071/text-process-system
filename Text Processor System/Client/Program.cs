@@ -13,7 +13,7 @@ namespace Client
             {
                 int number;
                 if (int.TryParse(input, out number) == false)
-                    Console.Out.WriteLine("Not a valid input, sending 1 request");
+                    Console.Out.WriteLine("Not a valid input, sending 0 requests");
 
                 Console.Out.WriteLine("Sending...");
 
@@ -27,10 +27,10 @@ namespace Client
         private static void Start(int number)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            Task execute = SendStrategy.Execute(number);
+            Task execution = SendStrategy.ExecuteAsync(number);
             try
             {
-                execute.Wait();
+                execution.Wait();
             }
             catch (AggregateException e)
             {

@@ -12,5 +12,14 @@ namespace Server
                 return baseAddress ?? "http://localhost:9000/";
             }
         }
+
+        public static string OutputFile
+        {
+            get
+            {
+                string outputFile = ConfigurationManager.AppSettings["OutputFile"];
+                return outputFile ?? "..\\..\\..\\results.txt";
+            }
+        }
     }
 }

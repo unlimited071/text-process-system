@@ -1,6 +1,6 @@
 ﻿namespace Server.Models
 {
-    public interface IStatCountCalculation
+    public interface ITextStatCalculator
     {
         Stat Calculate(string input);
     }

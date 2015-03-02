@@ -9,7 +9,7 @@ namespace Client
     {
         private static readonly HttpClient HttpClient = new HttpClient();
 
-        public static async Task Execute(int number)
+        public static async Task ExecuteAsync(int number)
         {
             var senders = new List<Task>();
             var generator = new TextGenerator();

@@ -42,16 +42,26 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpHandlerAsync.cs" />
     <Compile Include="HttpServer.cs" />
-    <Compile Include="Models\AlphanumericCountStatCalculation.cs" />
-    <Compile Include="Models\IStatCountCalculation.cs" />
-    <Compile Include="Models\NCountStatCalculation.cs" />
-    <Compile Include="Models\ParagraphCountStatCalculation.cs" />
+    <Compile Include="HttpServerOptions.cs" />
+    <Compile Include="Models\AlphanumericCountTextStatCalculator.cs" />
+    <Compile Include="Models\SixteenOrMoreWordsSentenceTextStatCalculator.cs" />
+    <Compile Include="Models\IStatsPersister.cs" />
+    <Compile Include="Models\IStatsCalculator.cs" />
+    <Compile Include="Models\ITextStatCalculator.cs" />
+    <Compile Include="Models\NCountTextStatCalculator.cs" />
+    <Compile Include="Models\ParagraphCountTextStatCalculator.cs" />
     <Compile Include="Models\Stat.cs" />
+    <Compile Include="Models\StatsPersister.cs" />
     <Compile Include="Models\StatsCalculator.cs" />
+    <Compile Include="PongHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="StringContentHandler.cs" />
+    <Compile Include="TextProcessorHandler.cs" />
+    <Compile Include="TextStatsProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

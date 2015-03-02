@@ -10,7 +10,7 @@ namespace Client
             get
             {
                 string serverUriString = ConfigurationManager.AppSettings["ServerUri"];
-                return new Uri(serverUriString ?? "http://localhost:9000/home/post");
+                return new Uri(serverUriString ?? "http://localhost:9000/");
             }
         }
     }

@@ -1,69 +1,48 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Server.Models;
 
 namespace Server
 {
     internal class Program
     {
-        private static BufferBlock<string> _bufferWork;
-        private static string _outputFile;
-
         private static void Main()
         {
-            _outputFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\results.txt");
-            _bufferWork = new BufferBlock<string>();
+            string outputFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.OutputFile);
             string baseAddress = Settings.BaseAddress;
-            Task work = StarConsumingWork();
-            UseCustomMadeServer(baseAddress);
-            _bufferWork.Complete();
-            work.Wait();
+            UseCustomMadeServer(baseAddress, outputFile);
         }
 
-        private static async Task StarConsumingWork()
+        private static void UseCustomMadeServer(string baseAddress, string outputFile)
         {
-            while (await _bufferWork.OutputAvailableAsync().ConfigureAwait(false))
+            var calculations = new Func<string, Stat>[]
             {
-                string work;
-                if (_bufferWork.TryReceive(out work))
-                {
-                    IStatCountCalculation[] calculations =
-                    {
-                        new AlphanumericCountStatCalculation(),
-                        new NCountStatCalculation(),
-                        new ParagraphCountStatCalculation()
-                    };
-                    var calculator = new StatsCalculator(calculations);
-                    Stat[] stats = calculator.Calculate(work);
+                AlphanumericCountTextStatCalculator.Calculate,
+                NCountTextStatCalculator.Calculate,
+                ParagraphCountTextStatCalculator.Calculate,
+                SixteenOrMoreWordsSentenceTextStatCalculator.Calculate
+            };
+            IStatsCalculator statsCalculator = new StatsCalculator(calculations);
+            IStatsPersister statsPersister = new StatsPersister(outputFile);
+            var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersister);
+            var textProcessorHandler = new TextProcessorHandler(textStatsProcessor);
+            textProcessorHandler.Start();
 
-                    var statsResult = new StringBuilder();
-                    statsResult.AppendLine(work);
-                    foreach (Stat stat in stats)
-                        statsResult.AppendFormat("{0}: {1}\r\n", stat.Description, stat.Count);
-                    statsResult.AppendLine("========================\r\n");
+            var handlers = new[]
+            {
+                new HttpHandlerAsync("/", textProcessorHandler.HandleAsync),
+                new HttpHandlerAsync("/ping", PongHandler.HandleAsync)
+            };
 
-                    File.AppendAllText(_outputFile, statsResult.ToString());
-                }
-            }
-        }
-
-        private static void UseCustomMadeServer(string baseAddress)
-        {
-            using (var server = new HttpServer(baseAddress))
+            var options = new HttpServerOptions(baseAddress, handlers, 20);
+            using (HttpServer.CreateHttpServer(options))
             {
                 Ping(baseAddress);
-                server.WorkRecieved += server_WorkRecieved;
                 TellAndWait(baseAddress);
             }
-        }
 
-        private static void server_WorkRecieved(string work)
-        {
-            _bufferWork.SendAsync(work).Wait();
+            textProcessorHandler.Stop();
         }
 
         private static void TellAndWait(string baseAddress)
@@ -71,13 +50,14 @@ namespace Server
             Console.Out.WriteLine("Listening on " + baseAddress);
             Console.Out.WriteLine("Press any key to shutdown server...");
             Console.ReadKey();
+            Console.Out.WriteLine("Shutting down, please wait while pending work completes...");
         }
 
         private static void Ping(string baseAddress)
         {
             Console.Out.Write("Ping...");
             var httpClient = new HttpClient();
-            HttpResponseMessage response = httpClient.GetAsync(baseAddress + "home/ping").Result;
+            HttpResponseMessage response = httpClient.GetAsync(baseAddress + "ping").Result;
             Console.Out.WriteLine(response.Content.ReadAsStringAsync().Result);
         }
     }

@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Server;
 using Server.Models;
 
 namespace ServerTests
@@ -12,15 +16,75 @@ namespace ServerTests
         [TestMethod]
         public void MustExcecuteAllRegisteredCalculations()
         {
-            IStatCountCalculation[] calculations =
+            bool calculation1 = false;
+            bool calulation2 = false;
+            var calculations = new Func<string, Stat>[]
             {
-                new AlphanumericCountStatCalculation(),
-                new NCountStatCalculation(),
-                new ParagraphCountStatCalculation()
+                s =>
+                {
+                    calculation1 = true;
+                    return new Stat();
+                },
+                s =>
+                {
+                    calulation2 = true;
+                    return new Stat();
+                }
             };
-            var calculator = new StatsCalculator(calculations);
-            Stat[] stats = calculator.Calculate(Input);
-            Assert.AreEqual(calculations.Length, stats.Length);
+            IStatsCalculator statsCalculator = new StatsCalculator(calculations);
+            statsCalculator.Calculate(Input);
+            Assert.IsTrue(calculation1 && calulation2);
+        }
+
+        [TestMethod]
+        public void MustCallCalculator()
+        {
+            var calculator = new FakeStatsCalculator();
+            IStatsPersister persister = new FakePersister();
+            var processor = new TextStatsProcessor(calculator, persister);
+
+            Task<bool> addTextAsync = processor.AddTextAsync(Input);
+            Task starAsync = processor.StarAsync();
+            processor.Stop();
+            Task.WhenAll(new[] { addTextAsync, starAsync }).Wait();
+            
+            Assert.IsTrue(calculator.Executed);
+        }
+
+        [TestMethod]
+        public void MustCallPersister()
+        {
+            IStatsCalculator calculator = new FakeStatsCalculator();
+            var persister = new FakePersister();
+            var processor = new TextStatsProcessor(calculator, persister);
+
+            Task<bool> addTextAsync = processor.AddTextAsync(Input);
+            Task starAsync = processor.StarAsync();
+            processor.Stop();
+            Task.WhenAll(new[] {addTextAsync, starAsync}).Wait();
+            
+            Assert.IsTrue(persister.Executed);
+        }
+    }
+
+    public class FakeStatsCalculator : IStatsCalculator
+    {
+        public bool Executed { get; set; }
+
+        public Stat[] Calculate(string input)
+        {
+            Executed = true;
+            return new Stat[] {};
+        }
+    }
+
+    public class FakePersister : IStatsPersister
+    {
+        public bool Executed { get; set; }
+
+        public void Persist(string input, Stat[] stats)
+        {
+            Executed = true;
         }
     }
 }

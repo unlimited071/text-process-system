@@ -1,38 +1,39 @@
 ﻿using System;
-using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Server
 {
     public class HttpServer : IDisposable
     {
-        private const int NumberOfWorkers = 20;
+        private readonly HttpHandlerAsync[] _handlersAsync;
         private readonly HttpListener _listener;
+        private readonly int _numberOfWorkers;
         private bool _disposed;
         private Task _serverTask;
 
-        public HttpServer(string baseAddress)
+        private HttpServer(HttpServerOptions httpServerOptions)
         {
+            _handlersAsync = httpServerOptions.HandlersAsync;
+            _numberOfWorkers = httpServerOptions.NumberOfWorkers;
             _listener = new HttpListener();
-            _listener.Prefixes.Add(baseAddress);
+            _listener.Prefixes.Add(httpServerOptions.BaseAddress);
             _listener.Start();
-            Start();
+            StartWorkers();
         }
 
-        public event Action<string> WorkRecieved;
-
-        protected virtual void OnWorkRecieved(string work)
+        public static HttpServer CreateHttpServer(HttpServerOptions httpServerOptions)
         {
-            Action<string> handler = WorkRecieved;
-            if (handler != null) handler(work);
+            return new HttpServer(httpServerOptions);
         }
 
-        private void Start()
+        private void StartWorkers()
         {
-            var requestHandlers = new Task[NumberOfWorkers];
-            for (int i = 0; i < NumberOfWorkers; i++)
+            var requestHandlers = new Task[_numberOfWorkers];
+            for (int i = 0; i < _numberOfWorkers; i++)
                 requestHandlers[i] = CreateRequestHandler();
 
             _serverTask = Task.WhenAll(requestHandlers);
@@ -52,34 +53,13 @@ namespace Server
                 try
                 {
                     HttpListenerContext context = await _listener.GetContextAsync().ConfigureAwait(false);
-                    HttpListenerRequest request = context.Request;
                     response = context.Response;
 
-                    //Validate Requests
-                    string httpMethod = request.HttpMethod;
-                    if (httpMethod != "POST")
+                    if (! await TryHandleRequestAsync(context))
                     {
-                        byte[] reponseContent = Encoding.UTF8.GetBytes("Only POST requests are allowed");
-                        response.StatusCode = (int) HttpStatusCode.BadRequest;
-                        response.ContentType = "text/plain";
-                        response.ContentLength64 = reponseContent.Length;
-                        await
-                            response.OutputStream.WriteAsync(reponseContent, 0, reponseContent.Length)
-                                .ConfigureAwait(false);
+                        response.StatusCode = (int) HttpStatusCode.NotFound;
                         return;
                     }
-
-                    //Get request content
-                    string content;
-                    using (var reader = new StreamReader(request.InputStream))
-                        content = await reader.ReadToEndAsync().ConfigureAwait(false);
-
-                    //Process request content
-                    OnWorkRecieved(content);
-
-                    //Respond to client
-                    response.ContentType = "text/plain";
-                    response.StatusCode = (int) HttpStatusCode.OK;
                 }
                 catch (HttpListenerException)
                 {
@@ -91,6 +71,36 @@ namespace Server
                         response.Close();
                 }
             }
+        }
+
+        private async Task<bool> TryHandleRequestAsync(HttpListenerContext context)
+        {
+            HttpHandlerAsync handlerAsync = _handlersAsync.FirstOrDefault(h => h.CanHandlePath(context.Request.RawUrl));
+            if (handlerAsync == null) return false;
+
+            Exception exception = null;
+            try
+            {
+                await handlerAsync.HandleAsync(context);
+            }
+            catch (Exception e)
+            {
+                exception = e;
+            }
+            if (exception != null)
+            {
+                await HandleUnhandledException(context, exception);
+            }
+            return true;
+        }
+
+        private static async Task HandleUnhandledException(HttpListenerContext context, Exception exception)
+        {
+            HttpListenerResponse response = context.Response;
+            byte[] responseBytes = Encoding.UTF8.GetBytes(exception.Message);
+            response.ContentLength64 = responseBytes.Length;
+            response.ContentType = "text/plain";
+            await response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
         }
 
         #region IDisposable

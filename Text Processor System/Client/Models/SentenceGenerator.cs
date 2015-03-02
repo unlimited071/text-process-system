@@ -12,7 +12,7 @@ namespace Client.Models
         public string GenerateSentence()
         {
             var sentence = new StringBuilder();
-            int wordCount = _random.Next(0, 10);
+            int wordCount = _random.Next(0, 20);
             for (int i = 0; i < wordCount; i++)
             {
                 int wordSeparatorPos = _random.Next(0, WordSeparators.Length);
