@@ -7,14 +7,17 @@ namespace Server
 {
     internal class Program
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
             string outputFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.OutputFile);
             string baseAddress = Settings.BaseAddress;
-            UseCustomMadeServer(baseAddress, outputFile);
+            int numberOfWorkers;
+            if (args.Length < 1 || !int.TryParse(args[0], out numberOfWorkers))
+                numberOfWorkers = 4*Environment.ProcessorCount;
+            UseCustomMadeServer(baseAddress, outputFile, numberOfWorkers);
         }
 
-        private static void UseCustomMadeServer(string baseAddress, string outputFile)
+        private static void UseCustomMadeServer(string baseAddress, string outputFile, int numberOfWorkers)
         {
             var calculations = new Func<string, Stat>[]
             {
@@ -27,7 +30,6 @@ namespace Server
             IStatsPersisterAsync statsPersisterAsync = new StatsPersisterAsync(outputFile);
             var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersisterAsync);
             var textProcessorHandler = new TextProcessorHandler(textStatsProcessor);
-            textProcessorHandler.Start();
 
             var handlers = new[]
             {
@@ -35,7 +37,7 @@ namespace Server
                 new HttpHandlerAsync("/ping", PongHandler.HandleAsync)
             };
 
-            var options = new HttpServerOptions(baseAddress, handlers, 20000);
+            var options = new HttpServerOptions(baseAddress, handlers, numberOfWorkers);
             using (HttpServer.CreateHttpServer(options))
             {
                 Ping(baseAddress);

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Client.Models;
@@ -11,17 +10,19 @@ namespace Client
 
         public static async Task ExecuteAsync(int number)
         {
-            var senders = new List<Task>();
+            var tasks = new Task[number];
             var generator = new TextGenerator();
+
             for (int i = 0; i < number; i++)
-                senders.Add(SendTextsAsync(generator.GenerateText()));
-            await Task.WhenAll(senders.ToArray()).ConfigureAwait(false);
+                tasks[i] = SendTextsAsync(generator.GenerateText());
+
+            await Task.WhenAll(tasks);
         }
 
         public static async Task SendTextsAsync(string text)
         {
             HttpResponseMessage response =
-                await HttpClient.PostAsync(Settings.ServerUri, new StringContent(text)).ConfigureAwait(false);
+                await HttpClient.PostAsync(Settings.ServerUri, new StringContent(text));
 
             response.EnsureSuccessStatusCode();
         }

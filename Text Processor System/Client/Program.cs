@@ -34,12 +34,11 @@ namespace Client
             }
             catch (AggregateException e)
             {
-                e = e.Flatten();
-                foreach (var ex in e.InnerExceptions)
+                foreach (var ex in e.Flatten().InnerExceptions)
                 {
-                    Console.Out.WriteLine(ex.Message);
+                    Console.Error.WriteLine(ex.Message);
                     for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
-                        Console.Out.WriteLine(ie.Message);
+                        Console.Error.WriteLine(ie.Message);
                 }
             }
             stopwatch.Stop();

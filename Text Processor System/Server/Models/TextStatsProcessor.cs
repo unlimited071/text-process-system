@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 namespace Server.Models
@@ -6,12 +7,13 @@ namespace Server.Models
     public class TextStatsProcessor
     {
         private readonly IStatsCalculator _calculator;
-        private readonly BufferBlock<string> _inputBuffer;
+        private readonly ActionBlock<string> _inputBuffer;
         private readonly IStatsPersisterAsync _persisterAsync;
 
         public TextStatsProcessor(IStatsCalculator statsCalculator, IStatsPersisterAsync persisterAsync)
         {
-            _inputBuffer = new BufferBlock<string>();
+            var options = new ExecutionDataflowBlockOptions {MaxDegreeOfParallelism = 1};
+            _inputBuffer = new ActionBlock<string>((Func<string, Task>) ProcessAsync, options);
             _persisterAsync = persisterAsync;
             _calculator = statsCalculator;
         }
@@ -21,22 +23,16 @@ namespace Server.Models
             return await _inputBuffer.SendAsync(text);
         }
 
-        public async Task StarAsync()
+        public async Task ProcessAsync(string input)
         {
-            while (await _inputBuffer.OutputAvailableAsync().ConfigureAwait(false))
-            {
-                string input;
-                if (_inputBuffer.TryReceive(out input))
-                {
-                    Stat[] stats = _calculator.Calculate(input);
-                    await _persisterAsync.PersistAsync(input, stats).ConfigureAwait(false);
-                }
-            }
+            Stat[] stats = _calculator.Calculate(input);
+            await _persisterAsync.PersistAsync(input, stats);
         }
 
         public void Stop()
         {
             _inputBuffer.Complete();
+            _inputBuffer.Completion.Wait();
         }
     }
 }

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Models
 {
@@ -16,19 +16,11 @@ namespace Server.Models
         public Stat[] Calculate(string input)
         {
             if (input == null) throw new ArgumentNullException("input");
-            if (_calculators.Length == 0)
-                return new Stat[0];
 
-            var stats = new ConcurrentBag<Stat>();
-            OrderablePartitioner<Tuple<int, int>> partitioner = Partitioner.Create(0, _calculators.Length);
-            Parallel.ForEach(partitioner, (range, state) =>
-            {
-                if (state.ShouldExitCurrentIteration)
-                    state.Break();
+            IEnumerable<Stat> stats =
+                from calculation in _calculators.AsParallel()
+                select calculation(input);
 
-                for (int i = range.Item1; i < range.Item2; i++)
-                    stats.Add(_calculators[i](input));
-            });
             return stats.ToArray();
         }
     }

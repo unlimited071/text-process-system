@@ -42,9 +42,8 @@ namespace ServerTests
             var processor = new TextStatsProcessor(calculator, persisterAsync);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
-            Task starAsync = processor.StarAsync();
             processor.Stop();
-            Task.WhenAll(new[] { addTextAsync, starAsync }).Wait();
+            addTextAsync.Wait();
             
             Assert.IsTrue(calculator.Executed);
         }
@@ -57,9 +56,8 @@ namespace ServerTests
             var processor = new TextStatsProcessor(calculator, persister);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
-            Task starAsync = processor.StarAsync();
             processor.Stop();
-            Task.WhenAll(new[] {addTextAsync, starAsync}).Wait();
+            addTextAsync.Wait();
             
             Assert.IsTrue(persister.Executed);
         }
