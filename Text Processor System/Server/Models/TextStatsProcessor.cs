@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -8,13 +9,13 @@ namespace Server.Models
     {
         private readonly IStatsCalculator _calculator;
         private readonly ActionBlock<string> _inputBuffer;
-        private readonly IStatsPersisterAsync _persisterAsync;
+        private readonly IStatsPersister _persister;
 
-        public TextStatsProcessor(IStatsCalculator statsCalculator, IStatsPersisterAsync persisterAsync)
+        public TextStatsProcessor(IStatsCalculator statsCalculator, IStatsPersister persister)
         {
             var options = new ExecutionDataflowBlockOptions {MaxDegreeOfParallelism = 1};
             _inputBuffer = new ActionBlock<string>((Func<string, Task>) ProcessAsync, options);
-            _persisterAsync = persisterAsync;
+            _persister = persister;
             _calculator = statsCalculator;
         }
 
@@ -23,10 +24,10 @@ namespace Server.Models
             return await _inputBuffer.SendAsync(text);
         }
 
-        public async Task ProcessAsync(string input)
+        private async Task ProcessAsync(string input)
         {
-            Stat[] stats = _calculator.Calculate(input);
-            await _persisterAsync.PersistAsync(input, stats);
+            IEnumerable<Stat> stats = _calculator.Calculate(input);
+            await _persister.PersistAsync(input, stats);
         }
 
         public void Stop()

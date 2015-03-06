@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Server.Models;
@@ -14,37 +16,28 @@ namespace ServerTests
         [TestMethod]
         public void MustExcecuteAllRegisteredCalculations()
         {
-            bool calculation1 = false;
-            bool calulation2 = false;
-            var calculations = new Func<string, Stat>[]
-            {
-                s =>
-                {
-                    calculation1 = true;
-                    return new Stat();
-                },
-                s =>
-                {
-                    calulation2 = true;
-                    return new Stat();
-                }
-            };
+            var calulation1 = new FakeCalculation();
+            var calulation2 = new FakeCalculation();
+            ITextStatCalculation[] calculations = {calulation1, calulation2};
             IStatsCalculator statsCalculator = new StatsCalculator(calculations);
-            statsCalculator.Calculate(Input);
-            Assert.IsTrue(calculation1 && calulation2);
+
+            IEnumerable<Stat> stats = statsCalculator.Calculate(Input);
+
+            Assert.AreEqual(calculations.Length, stats.Count());
+            Assert.IsTrue(calulation1.Executed && calulation2.Executed);
         }
 
         [TestMethod]
         public void MustCallCalculator()
         {
             var calculator = new FakeStatsCalculator();
-            IStatsPersisterAsync persisterAsync = new FakePersisterAsync();
-            var processor = new TextStatsProcessor(calculator, persisterAsync);
+            IStatsPersister persister = new FakePersister();
+            var processor = new TextStatsProcessor(calculator, persister);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
             processor.Stop();
             addTextAsync.Wait();
-            
+
             Assert.IsTrue(calculator.Executed);
         }
 
@@ -52,14 +45,30 @@ namespace ServerTests
         public void MustCallPersister()
         {
             IStatsCalculator calculator = new FakeStatsCalculator();
-            var persister = new FakePersisterAsync();
+            var persister = new FakePersister();
             var processor = new TextStatsProcessor(calculator, persister);
 
             Task<bool> addTextAsync = processor.AddTextAsync(Input);
             processor.Stop();
             addTextAsync.Wait();
-            
+
             Assert.IsTrue(persister.Executed);
+        }
+    }
+
+    public class FakeCalculation : ITextStatCalculation
+    {
+        public bool Executed { get; private set; }
+
+        public Func<string, Stat> Calculation
+        {
+            get { return Calculate; }
+        }
+
+        private Stat Calculate(string arg)
+        {
+            Executed = true;
+            return new Stat();
         }
     }
 }

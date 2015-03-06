@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+
 namespace Server.Models
 {
     public interface IStatsCalculator
     {
-        Stat[] Calculate(string input);
+        IEnumerable<Stat> Calculate(string input);
     }
 }

@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Server.Models;
 
 namespace ServerTests
 {
-    public class FakeStatsCalculator : IStatsCalculator
+    public class FakePersister : IStatsPersister
     {
         public bool Executed { get; private set; }
 
-        public IEnumerable<Stat> Calculate(string input)
+        public Task PersistAsync(string input, IEnumerable<Stat> stats)
         {
             Executed = true;
-            return new Stat[] {};
+            return Task.FromResult(0);
         }
     }
 }

@@ -1,19 +1,20 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Server.Models
 {
-    public class StatsPersisterAsync : IStatsPersisterAsync
+    public class StatsPersister : IStatsPersister
     {
         private readonly string _outputFile;
 
-        public StatsPersisterAsync(string outputFile)
+        public StatsPersister(string outputFile)
         {
             _outputFile = outputFile;
         }
 
-        public async Task PersistAsync(string input, Stat[] stats)
+        public async Task PersistAsync(string input, IEnumerable<Stat> stats)
         {
             var statsResult = new StringBuilder();
             statsResult.AppendLine(input);

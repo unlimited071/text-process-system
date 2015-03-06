@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Client
 {
@@ -27,21 +26,15 @@ namespace Client
         private static void Start(int number)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            Task execution = SendStrategy.ExecuteAsync(number);
+            ITextSender textSender = new TextSender();
             try
             {
-                execution.Wait();
+                textSender.Send(number);
             }
-            catch (AggregateException e)
+            catch (Exception e)
             {
-                foreach (var ex in e.Flatten().InnerExceptions)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                    for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
-                        Console.Error.WriteLine(ie.Message);
-                }
+                Console.Error.WriteLine(e);
             }
-            stopwatch.Stop();
             Console.Out.WriteLine("It took: " + stopwatch.ElapsedMilliseconds + "ms");
         }
 

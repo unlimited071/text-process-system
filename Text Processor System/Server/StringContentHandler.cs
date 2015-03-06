@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    internal class StringContentHandler
+    internal static class StringContentHandler
     {
         public static async Task<string> HandleAsync(HttpListenerContext context)
         {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    internal class PongHandler
+    internal static class PongHandler
     {
         public static async Task HandleAsync(HttpListenerContext context)
         {

@@ -6,22 +6,17 @@ namespace Server.Models
 {
     public class StatsCalculator : IStatsCalculator
     {
-        private readonly Func<string, Stat>[] _calculators;
+        private readonly ITextStatCalculation[] _calculations;
 
-        public StatsCalculator(Func<string, Stat>[] calculators)
+        public StatsCalculator(ITextStatCalculation[] calculations)
         {
-            _calculators = calculators;
+            _calculations = calculations;
         }
 
-        public Stat[] Calculate(string input)
+        public IEnumerable<Stat> Calculate(string input)
         {
             if (input == null) throw new ArgumentNullException("input");
-
-            IEnumerable<Stat> stats =
-                from calculation in _calculators.AsParallel()
-                select calculation(input);
-
-            return stats.ToArray();
+            return _calculations.Select(c => c.Calculation(input));
         }
     }
 }

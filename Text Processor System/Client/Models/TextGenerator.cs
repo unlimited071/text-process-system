@@ -2,7 +2,7 @@
 
 namespace Client.Models
 {
-    public class TextGenerator
+    public class TextGenerator : ITextGenerator
     {
         public string GenerateText()
         {

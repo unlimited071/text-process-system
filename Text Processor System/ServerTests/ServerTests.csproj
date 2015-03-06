@@ -50,7 +50,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="FakePersisterAsync.cs" />
+    <Compile Include="FakePersister.cs" />
     <Compile Include="FakeStatsCalculator.cs" />
     <Compile Include="StatsCalculationsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -7,7 +7,7 @@ namespace Client.Models
     {
         private const string Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         private static readonly string[] WordSeparators = {" ", " ", " ", ", ", ". "};
-        private readonly Random _random = new Random();
+        private readonly Random _random = new Random((int) DateTime.Now.Ticks);
 
         public string GenerateSentence()
         {
@@ -23,7 +23,7 @@ namespace Client.Models
             return sentence + "." + Environment.NewLine;
         }
 
-        public string GenerateWord()
+        private string GenerateWord()
         {
             var word = new StringBuilder();
             int wordLength = _random.Next(2, 10);

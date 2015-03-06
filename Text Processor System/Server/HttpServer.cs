@@ -7,7 +7,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Server
 {
-    public class HttpServer : IDisposable
+    public sealed class HttpServer : IDisposable
     {
         private readonly ActionBlock<HttpListenerContext> _buffer; 
         private readonly HttpHandlerAsync[] _handlersAsync;
@@ -115,13 +115,18 @@ namespace Server
 
         #region IDisposable
 
+        ~HttpServer()
+        {
+            Dispose(false);
+        }
+
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (_disposed)
                 return;

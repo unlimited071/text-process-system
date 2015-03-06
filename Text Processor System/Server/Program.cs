@@ -19,16 +19,16 @@ namespace Server
 
         private static void UseCustomMadeServer(string baseAddress, string outputFile, int numberOfWorkers)
         {
-            var calculations = new Func<string, Stat>[]
+            var calculations = new ITextStatCalculation[]
             {
-                AlphanumericCountTextStatCalculator.Calculate,
-                NCountTextStatCalculator.Calculate,
-                ParagraphCountTextStatCalculator.Calculate,
-                SixteenOrMoreWordsSentenceTextStatCalculator.Calculate
+                new AlphanumericCountTextStatCalculation(),
+                new NCountTextStatCalculation(),
+                new ParagraphCountTextStatCalculation(),
+                new SixteenOrMoreWordsSentenceTextStatCalculation()
             };
             IStatsCalculator statsCalculator = new StatsCalculator(calculations);
-            IStatsPersisterAsync statsPersisterAsync = new StatsPersisterAsync(outputFile);
-            var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersisterAsync);
+            IStatsPersister statsPersister = new StatsPersister(outputFile);
+            var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersister);
             var textProcessorHandler = new TextProcessorHandler(textStatsProcessor);
 
             var handlers = new[]
