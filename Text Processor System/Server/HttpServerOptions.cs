@@ -3,13 +3,13 @@
     public class HttpServerOptions
     {
         private readonly string _baseAddress;
-        private readonly HttpHandlerAsync[] _handlersAsync;
+        private readonly IHttpListenerContextHandler[] _httpListenerContextHandlers;
         private readonly int _numberOfWorkers;
 
-        public HttpServerOptions(string baseAddress, HttpHandlerAsync[] handlersAsync, int numberOfWorkers)
+        public HttpServerOptions(string baseAddress, IHttpListenerContextHandler[] httpListenerContextHandlers, int numberOfWorkers)
         {
             _baseAddress = baseAddress;
-            _handlersAsync = handlersAsync;
+            _httpListenerContextHandlers = httpListenerContextHandlers;
             _numberOfWorkers = numberOfWorkers;
         }
 
@@ -18,9 +18,9 @@
             get { return _baseAddress; }
         }
 
-        public HttpHandlerAsync[] HandlersAsync
+        public IHttpListenerContextHandler[] HttpListenerContextHandlers
         {
-            get { return _handlersAsync; }
+            get { return _httpListenerContextHandlers; }
         }
 
         public int NumberOfWorkers

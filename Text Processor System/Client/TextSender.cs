@@ -15,14 +15,6 @@ namespace Client
             _generator = new TextGenerator();
         }
 
-        private async Task SendTextsAsync(string text)
-        {
-            HttpResponseMessage response =
-                await _httpClient.PostAsync(Settings.ServerUri, new StringContent(text));
-
-            response.EnsureSuccessStatusCode();
-        }
-
         public void Send(int number)
         {
             var tasks = new Task[number];
@@ -31,6 +23,16 @@ namespace Client
                 tasks[i] = SendTextsAsync(_generator.GenerateText());
             }
             Task.WaitAll(tasks);
+        }
+
+        private async Task SendTextsAsync(string text)
+        {
+            HttpResponseMessage response =
+                await _httpClient
+                    .PostAsync(Settings.ServerUri, new StringContent(text))
+                    .ConfigureAwait(false);
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }

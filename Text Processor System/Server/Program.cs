@@ -29,22 +29,24 @@ namespace Server
             IStatsCalculator statsCalculator = new StatsCalculator(calculations);
             IStatsPersister statsPersister = new StatsPersister(outputFile);
             var textStatsProcessor = new TextStatsProcessor(statsCalculator, statsPersister);
-            var textProcessorHandler = new TextProcessorHandler(textStatsProcessor);
+            var textStatsProcessorHandler = new TextStatsProcessorHandler("/", textStatsProcessor);
 
-            var handlers = new[]
+            IHttpListenerContextHandler[] handlers =
             {
-                new HttpHandlerAsync("/", textProcessorHandler.HandleAsync),
-                new HttpHandlerAsync("/ping", PongHandler.HandleAsync)
+                textStatsProcessorHandler,
+                new PongHandler("/ping")
             };
 
             var options = new HttpServerOptions(baseAddress, handlers, numberOfWorkers);
-            using (HttpServer.CreateHttpServer(options))
+            using (var server = new HttpServer(options))
             {
+                server.Start();
                 Ping(baseAddress);
                 TellAndWait(baseAddress);
+                server.Stop();
             }
 
-            textProcessorHandler.Stop();
+            textStatsProcessorHandler.Complete();
         }
 
         private static void TellAndWait(string baseAddress)

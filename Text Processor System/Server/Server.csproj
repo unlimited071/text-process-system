@@ -44,10 +44,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HttpHandlerAsync.cs" />
+    <Compile Include="HttpListenerContextHandler.cs" />
     <Compile Include="HttpServer.cs" />
     <Compile Include="HttpServerOptions.cs" />
+    <Compile Include="IHttpListenerContextHandler.cs" />
+    <Compile Include="IHttpServer.cs" />
     <Compile Include="Models\AlphanumericCountTextStatCalculation.cs" />
+    <Compile Include="Models\ITextStatsProcessor.cs" />
     <Compile Include="Models\SixteenOrMoreWordsSentenceTextStatCalculation.cs" />
     <Compile Include="Models\IStatsPersister.cs" />
     <Compile Include="Models\IStatsCalculator.cs" />
@@ -61,8 +64,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="StringContentHandler.cs" />
-    <Compile Include="TextProcessorHandler.cs" />
+    <Compile Include="TextStatsProcessorHandler.cs" />
     <Compile Include="Models\TextStatsProcessor.cs" />
   </ItemGroup>
   <ItemGroup>

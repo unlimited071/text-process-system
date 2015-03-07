@@ -5,7 +5,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Server.Models
 {
-    public class TextStatsProcessor
+    public class TextStatsProcessor : ITextStatsProcessor
     {
         private readonly IStatsCalculator _calculator;
         private readonly ActionBlock<string> _inputBuffer;
@@ -21,7 +21,7 @@ namespace Server.Models
 
         public async Task<bool> AddTextAsync(string text)
         {
-            return await _inputBuffer.SendAsync(text);
+            return await _inputBuffer.SendAsync(text).ConfigureAwait(false);
         }
 
         private async Task ProcessAsync(string input)
@@ -30,7 +30,7 @@ namespace Server.Models
             await _persister.PersistAsync(input, stats);
         }
 
-        public void Stop()
+        public void Complete()
         {
             _inputBuffer.Complete();
             _inputBuffer.Completion.Wait();

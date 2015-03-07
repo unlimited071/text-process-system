@@ -7,29 +7,47 @@ using System.Threading.Tasks.Dataflow;
 
 namespace Server
 {
-    public sealed class HttpServer : IDisposable
+    public sealed class HttpServer : IDisposable, IHttpServer
     {
-        private readonly ActionBlock<HttpListenerContext> _buffer; 
-        private readonly HttpHandlerAsync[] _handlersAsync;
+        private readonly ActionBlock<HttpListenerContext> _buffer;
+        private readonly IHttpListenerContextHandler[] _handlers;
         private readonly HttpListener _listener;
         private readonly int _numberOfWorkers;
         private bool _disposed;
         private Task _serverTask;
 
-        private HttpServer(HttpServerOptions httpServerOptions)
+        public HttpServer(HttpServerOptions options)
         {
-            _handlersAsync = httpServerOptions.HandlersAsync;
-            _numberOfWorkers = httpServerOptions.NumberOfWorkers;
+            _handlers = options.HttpListenerContextHandlers;
+            _numberOfWorkers = options.NumberOfWorkers;
             _buffer = new ActionBlock<HttpListenerContext>((Func<HttpListenerContext, Task>) HandleRequestAsync);
             _listener = new HttpListener();
-            _listener.Prefixes.Add(httpServerOptions.BaseAddress);
+            _listener.Prefixes.Add(options.BaseAddress);
+        }
+
+        public void Start()
+        {
             _listener.Start();
             StartWorkers();
         }
 
-        public static HttpServer CreateHttpServer(HttpServerOptions httpServerOptions)
+        public void Stop()
         {
-            return new HttpServer(httpServerOptions);
+            _listener.Stop();
+            _buffer.Complete();
+            try
+            {
+                _serverTask.Wait();
+            }
+            catch (AggregateException e)
+            {
+                foreach (Exception ex in e.Flatten().InnerExceptions)
+                {
+                    Console.Out.WriteLine(ex.Message);
+                    for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
+                        Console.Out.WriteLine(ie.Message);
+                }
+            }
         }
 
         private void StartWorkers()
@@ -43,25 +61,6 @@ namespace Server
             _serverTask = Task.WhenAll(workerTasks, handlerTasks);
         }
 
-        private void Stop()
-        {
-            _listener.Stop();
-            _buffer.Complete();
-            try
-            {
-                _serverTask.Wait();
-            }
-            catch (AggregateException e)
-            {
-                foreach (var ex in e.Flatten().InnerExceptions)
-                {
-                    Console.Out.WriteLine(ex.Message);
-                    for (Exception ie = ex.InnerException; ie != null; ie = ie.InnerException)
-                        Console.Out.WriteLine(ie.Message);
-                }
-            }
-        }
-
         private async Task CreateRequestHandler()
         {
             while (_listener.IsListening)
@@ -69,7 +68,7 @@ namespace Server
                 try
                 {
                     HttpListenerContext context = await _listener.GetContextAsync().ConfigureAwait(false);
-                    await _buffer.SendAsync(context);
+                    await _buffer.SendAsync(context).ConfigureAwait(false);
                 }
                 catch (HttpListenerException)
                 {
@@ -80,10 +79,12 @@ namespace Server
 
         private async Task HandleRequestAsync(HttpListenerContext context)
         {
-            HttpHandlerAsync handlerAsync = _handlersAsync.FirstOrDefault(h => h.CanHandlePath(context.Request.RawUrl));
-            if (handlerAsync == null)
+            IHttpListenerContextHandler listenerContextHandler =
+                _handlers.FirstOrDefault(h => h.CanHandlePath(context.Request.RawUrl));
+
+            if (listenerContextHandler == null)
             {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                context.Response.StatusCode = (int) HttpStatusCode.NotFound;
                 context.Response.Close();
                 return;
             }
@@ -91,7 +92,7 @@ namespace Server
             Exception exception = null;
             try
             {
-                await handlerAsync.HandleAsync(context);
+                await listenerContextHandler.HandleAsync(context);
             }
             catch (Exception e)
             {
@@ -115,15 +116,15 @@ namespace Server
 
         #region IDisposable
 
-        ~HttpServer()
-        {
-            Dispose(false);
-        }
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        ~HttpServer()
+        {
+            Dispose(false);
         }
 
         private void Dispose(bool disposing)
