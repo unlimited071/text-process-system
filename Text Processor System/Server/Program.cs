@@ -13,7 +13,7 @@ namespace Server
             string baseAddress = Settings.BaseAddress;
             int numberOfWorkers;
             if (args.Length < 1 || !int.TryParse(args[0], out numberOfWorkers))
-                numberOfWorkers = 4*Environment.ProcessorCount;
+                numberOfWorkers = 200;
             UseCustomMadeServer(baseAddress, outputFile, numberOfWorkers);
         }
 

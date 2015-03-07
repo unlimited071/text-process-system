@@ -14,13 +14,13 @@ namespace Server
         private readonly HttpListener _listener;
         private readonly int _numberOfWorkers;
         private bool _disposed;
-        private Task _serverTask;
+        private Task _serverTasks;
 
         public HttpServer(HttpServerOptions options)
         {
+            _buffer = new ActionBlock<HttpListenerContext>((Func<HttpListenerContext, Task>) HandleContextAsync);
             _handlers = options.HttpListenerContextHandlers;
-            _numberOfWorkers = options.NumberOfWorkers;
-            _buffer = new ActionBlock<HttpListenerContext>((Func<HttpListenerContext, Task>) HandleRequestAsync);
+            _numberOfWorkers = options.NumberOfWorkers; 
             _listener = new HttpListener();
             _listener.Prefixes.Add(options.BaseAddress);
         }
@@ -28,7 +28,7 @@ namespace Server
         public void Start()
         {
             _listener.Start();
-            StartWorkers();
+            StartListeners();
         }
 
         public void Stop()
@@ -37,7 +37,7 @@ namespace Server
             _buffer.Complete();
             try
             {
-                _serverTask.Wait();
+                _serverTasks.Wait();
             }
             catch (AggregateException e)
             {
@@ -50,18 +50,18 @@ namespace Server
             }
         }
 
-        private void StartWorkers()
+        private void StartListeners()
         {
-            var requestHandlers = new Task[_numberOfWorkers];
+            var listeners = new Task[_numberOfWorkers];
             for (int i = 0; i < _numberOfWorkers; i++)
-                requestHandlers[i] = CreateRequestHandler();
+                listeners[i] = StartListener();
 
-            Task workerTasks = Task.WhenAll(requestHandlers);
+            Task listenerTasks = Task.WhenAll(listeners);
             Task handlerTasks = _buffer.Completion;
-            _serverTask = Task.WhenAll(workerTasks, handlerTasks);
+            _serverTasks = Task.WhenAll(listenerTasks, handlerTasks);
         }
 
-        private async Task CreateRequestHandler()
+        private async Task StartListener()
         {
             while (_listener.IsListening)
             {
@@ -77,11 +77,9 @@ namespace Server
             }
         }
 
-        private async Task HandleRequestAsync(HttpListenerContext context)
+        private async Task HandleContextAsync(HttpListenerContext context)
         {
-            IHttpListenerContextHandler listenerContextHandler =
-                _handlers.FirstOrDefault(h => h.CanHandlePath(context.Request.RawUrl));
-
+            IHttpListenerContextHandler listenerContextHandler = GetHttpListenerContextHandler(context);
             if (listenerContextHandler == null)
             {
                 context.Response.StatusCode = (int) HttpStatusCode.NotFound;
@@ -102,6 +100,13 @@ namespace Server
             {
                 await HandleUnhandledException(context, exception);
             }
+        }
+
+        private IHttpListenerContextHandler GetHttpListenerContextHandler(HttpListenerContext context)
+        {
+            IHttpListenerContextHandler listenerContextHandler = _handlers
+                .FirstOrDefault(h => h.CanHandlePath(context.Request.RawUrl));
+            return listenerContextHandler;
         }
 
         private static async Task HandleUnhandledException(HttpListenerContext context, Exception exception)
